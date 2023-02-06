@@ -2,6 +2,16 @@ package edu.jsu.mcis.cs310;
 
 import com.github.cliftonlabs.json_simple.*;
 import com.opencsv.*;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import static java.util.Spliterators.iterator;
+
 
 public class Converter {
     
@@ -74,18 +84,63 @@ public class Converter {
     @SuppressWarnings("unchecked")
     public static String csvToJson(String csvString) {
         
-        String result = "{}"; // default return value; replace later!
+         String result = "{}"; // default return value; replace later!
         
         try {
         
             // INSERT YOUR CODE HERE
+            CSVReader reader = new CSVReader(new StringReader(csvString));
+            List<String[]> rows = reader.readAll();
+            String[] headers = rows.get(0);
             
+            
+            
+            JsonArray colheadings = new JsonArray();
+            JsonArray pnumber = new JsonArray();
+            JsonArray dataall = new JsonArray();
+            
+            JsonObject json= new JsonObject();
+            
+            for (int j = 0; j < headers.length ; j++) {
+                colheadings.add(headers[j]); //add the arrays to an array
+            }
+
+            for (int i = 1; i<rows.size(); i++) {
+                
+                String[] values = rows.get(i); //get the row data inside the array
+                
+                pnumber.add(values[0]); //add the product number to array
+                
+                JsonArray data = new JsonArray();
+                
+                for(int k=1; k<values.length;k++){
+                    
+                    if (k == colheadings.indexOf("Season") || k == colheadings.indexOf("Episode")) {
+                        data.add(Integer.valueOf(values[k])); //add the data values to an array
+                    }
+                    else {
+                        data.add(values[k]); //add the data values to an array
+                    }
+                    
+                }
+                
+                dataall.add(data);
+              
+            }
+ 
+            json.put("ProdNums", pnumber);
+            json.put("ColHeadings", colheadings);
+            json.put("Data", dataall);
+                
+            //System.out.println(colheadings);
+            result = Jsoner.serialize(json);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
         
         return result.trim();
+        
         
     }
     
@@ -93,10 +148,80 @@ public class Converter {
     public static String jsonToCsv(String jsonString) {
         
         String result = ""; // default return value; replace later!
+        DecimalFormat decimalFormat = new DecimalFormat("00");
         
         try {
             
             // INSERT YOUR CODE HERE
+           
+            JsonObject jsonObject = Jsoner.deserialize(jsonString, new JsonObject());
+            
+            
+            JsonArray colheadings = new JsonArray();
+            colheadings=(JsonArray) (jsonObject.get("ColHeadings"));
+            //System.out.println(colheadings);
+            
+            JsonArray pnumber = new JsonArray();
+            pnumber=(JsonArray) (jsonObject.get("ProdNums"));
+            //System.out.println(pnumber);
+            
+            JsonArray dataall = new JsonArray();
+            dataall=(JsonArray) (jsonObject.get("Data"));
+            //System.out.println(dataall);
+            
+            
+                        
+            
+            StringWriter stringWriter = new StringWriter();
+            CSVWriter csvWriter = new CSVWriter(stringWriter, ',', '"', '\\', "\n");
+   
+            
+            // insert headings
+            String[] headings = new String[colheadings.size()];
+            for (int i = 0; i < colheadings.size(); i++) {
+                headings[i] = colheadings.get(i).toString();
+            }
+            csvWriter.writeNext(headings);
+            
+            
+            //print the data and product number
+            for(int i=0;i<pnumber.size();i++){
+                String[] row= new  String[colheadings.size()];
+                JsonArray data = new JsonArray(); 
+                data=(JsonArray) dataall.get(i);
+                
+                //adding the pnumebr and data to the writer
+                row[0]=pnumber.get(i).toString();
+                for (int j = 0; j < data.size(); j++) {
+                    System.out.println(data.get(colheadings.indexOf("Episode")-1));
+                    if(data.get(j)==data.get(colheadings.indexOf("Episode")-1)){
+                        
+                        System.out.println(data.get(colheadings.indexOf("Episode")-1)=="1");
+                        //String number=(String) data.get(colheadings.indexOf("Episode"));
+                        //String formattedNumber = String.format("%02d", Integer.parseInt(number));
+                        
+                        int number = Integer.parseInt(data.get(j).toString());
+                        String formattedNumber = "";
+                        
+                        formattedNumber = decimalFormat.format(number);
+                        
+                        System.out.println(formattedNumber);
+                        row[j+1]=formattedNumber;
+                    }
+                    else{
+                        row[j+1] = data.get(j).toString();
+                    }
+                    
+                }
+                //row[i]=pnumber.get(i).toString();
+                csvWriter.writeNext(row);
+                
+                
+            }
+            //System.out.println(pnumber.get(0));
+            
+            result = stringWriter.toString();
+            
             
         }
         catch (Exception e) {
@@ -104,6 +229,7 @@ public class Converter {
         }
         
         return result.trim();
+        
         
     }
     
