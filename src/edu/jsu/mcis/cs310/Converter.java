@@ -193,19 +193,16 @@ public class Converter {
                 //adding the pnumebr and data to the writer
                 row[0]=pnumber.get(i).toString();
                 for (int j = 0; j < data.size(); j++) {
-                    System.out.println(data.get(colheadings.indexOf("Episode")-1));
+                    //System.out.println(data.get(colheadings.indexOf("Episode")-1));
                     if(data.get(j)==data.get(colheadings.indexOf("Episode")-1)){
                         
-                        System.out.println(data.get(colheadings.indexOf("Episode")-1)=="1");
-                        //String number=(String) data.get(colheadings.indexOf("Episode"));
-                        //String formattedNumber = String.format("%02d", Integer.parseInt(number));
-                        
+                        //System.out.println(data.get(colheadings.indexOf("Episode")-1)=="1");                        
                         int number = Integer.parseInt(data.get(j).toString());
                         String formattedNumber = "";
                         
                         formattedNumber = decimalFormat.format(number);
                         
-                        System.out.println(formattedNumber);
+                        //System.out.println(formattedNumber);
                         row[j+1]=formattedNumber;
                     }
                     else{
@@ -213,7 +210,7 @@ public class Converter {
                     }
                     
                 }
-                //row[i]=pnumber.get(i).toString();
+                
                 csvWriter.writeNext(row);
                 
                 
